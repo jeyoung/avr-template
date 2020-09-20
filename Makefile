@@ -8,6 +8,8 @@ OBJCOPY = avr-objcopy
 
 AVRDUDE = $(AVRDUDE_PATH)
 PORT = usb
+PROGRAMMER = avrispmkII
+PART = m2560
 
 CFLAGS = -Os -DF_CPU=16000000UL $(INCLUDE_DIRS) -std=c11 -mmcu=atmega2560
 LDFLAGS = -L/usr/lib/avr/lib -mmcu=atmega2560
@@ -27,7 +29,7 @@ $(TARGET).elf: $(OBJECTS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 upload: $(TARGET).hex
-	$(AVRDUDE) -v -F -V -c avrispmkII -p m2560 -P $(PORT) -b 115200 -U flash:w:$<:i
+	$(AVRDUDE) -v -c $(PROGRAMMER) -p $(PART) -P $(PORT) -U flash:w:$<:i
 
 clean:
 	-rm -f $(TARGET).hex $(TARGET).elf $(OBJECTS)
