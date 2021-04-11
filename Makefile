@@ -1,35 +1,44 @@
-AVRDUDE_PATH = avrdude
-
-SRC_DIR = ./src
-INCLUDE_DIRS = -I./include -I/usr/lib/avr/include
-
 CC = avr-gcc
+LD = avr-gcc
 OBJCOPY = avr-objcopy
 
-AVRDUDE = $(AVRDUDE_PATH)
+AVRDUDE = avrdude
+PART = m2560
 PORT = usb
 PROGRAMMER = avrispmkII
-PART = m2560
 
-CFLAGS = -Os -DF_CPU=16000000UL $(INCLUDE_DIRS) -std=c11 -mmcu=atmega2560
-LDFLAGS = -L/usr/lib/avr/lib -mmcu=atmega2560
-OBJECTS = $(TARGET).o
+SRCDIR = src
+OBJDIR = obj
+BINDIR = bin
 
-TARGET = main
+INCLUDES = -I./include -I/usr/lib/avr/include
+CFLAGS = $(INCLUDES) -Os -DF_CPU=16000000UL -std=c11 -mmcu=atmega2560
 
-all: clean upload
+LIBS = -L/usr/lib/avr/lib
+LDFLAGS = $(LIBS) -mmcu=atmega2560
 
-$(TARGET).hex: $(TARGET).elf
+SRCS = $(wildcard $(SRCDIR)/*.c)
+OBJS = $(SRCS:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+
+BIN = $(BINDIR)/main
+HEX = $(BIN).hex
+
+all: prepare $(HEX)
+
+$(HEX): $(BIN)
 	$(OBJCOPY) -O ihex -R .eeprom $< $@
 
-$(TARGET).elf: $(OBJECTS)
-	$(CC) $(LDFLAGS) -o $@ $^
+$(BIN): $(OBJS)
+	$(LD) $(LDFLAGS) -o $@ $^
 
-%.o: $(SRC_DIR)/%.c
+$(OBJS): $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-upload: $(TARGET).hex
+upload: $(HEX)
 	$(AVRDUDE) -v -c $(PROGRAMMER) -p $(PART) -P $(PORT) -U flash:w:$<:i
 
+prepare:
+	-mkdir -pv $(OBJDIR)
+	-mkdir -pv $(BINDIR)
 clean:
-	-rm -f $(TARGET).hex $(TARGET).elf $(OBJECTS)
+	-rm -r $(BINDIR) $(OBJDIR)

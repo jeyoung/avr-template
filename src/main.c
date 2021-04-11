@@ -1,23 +1,36 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-void
-delay_ms(uint16_t);
+#define LED_PIN        PB7
+#define BLINK_INTERVAL 2000
 
-int
-main(void)
+void delay_ms(uint16_t ms);
+void setup();
+void loop();
+
+int main(void)
 {
-    DDRB |= (1 << PB7);
-    while (1)
-    {
-        PORTB ^= (1 << PB7);
-        delay_ms(2000);
+    setup();
+    while (1) {
+	loop();
     }
+    return 0;
 }
 
-void
-delay_ms(uint16_t ms)
+void setup()
 {
-    while (--ms > 0)
+    DDRB |= (1 << LED_PIN);
+}
+
+void loop()
+{
+    PORTB ^= (1 << LED_PIN);
+    delay_ms(BLINK_INTERVAL);
+}
+
+void delay_ms(uint16_t ms)
+{
+    while (--ms > 0) {
         _delay_ms(1);
+    }
 }
